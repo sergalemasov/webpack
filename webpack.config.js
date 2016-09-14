@@ -4,10 +4,16 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const webpack = require('webpack');
 
 module.exports = {
-  entry: './home',
+  context: __dirname + '/frontend',
+
+  entry: {
+    app: './app'
+  },
+
   output: {
-    filename: 'build.js',
-    library: 'home'
+    path: __dirname + '/public/js',
+    publicPath: '/js/',
+    filename: '[name].js',
   },
 
   watch: NODE_ENV == 'development',
@@ -19,15 +25,41 @@ module.exports = {
   devtool: NODE_ENV == 'development' ? "source-map" : null,
 
   plugins: [
-    new webpack.DefinePlugin({
-      NODE_ENV: JSON.stringify(NODE_ENV)
-    })
+    new webpack.NoErrorsPlugin(),
   ],
+
+  resolve: {
+    modulesDirectories: ['node_modules'],
+    extensions: ['', '.js']
+  },
+
+  resolveLoader: {
+    modulesDirectories: ['node_modules'],
+    moduleTemplates: ['*-loader', '*'],
+    extensions: ['', '.js']
+  },
+
 
   module: {
     loaders: [{
       test: /\.js$/,
-      loader: 'babel?presets[]=es2015'
+      loader: 'babel',
+      query: {
+        presets: ['es2015'],
+        plugins: ['transform-runtime']
+      }
     }]
   }
+}
+
+if (NODE_ENV == 'production') {
+  module.exports.plugins.push(
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false,
+        drop_console: true,
+        unsafe: true
+      }
+    })
+  )
 }
